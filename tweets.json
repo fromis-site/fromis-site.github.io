@@ -1,0 +1,94 @@
+[
+  {
+  "id": 1779977570268,
+  "url": "https://x.com/realfromis_9/status/935434713606397952?s=20",
+  "author_name": "프로미스나인",
+  "author_handle": "@realfromis_9",
+  "content": "[💌 #fromis_9 ] fromis_9의 첫 해외 무대이자 첫 시상식 참석을 기념하며! 첫 번째 V LIVE에 함께해주신 육성회원님들 모두모두 감사합니다 🙆🏻❣️ MAMA 무대도 많이 많이 기대해주세요! #약속 🤙🏻",
+  "date": "2017-11-28",
+  "tags": [
+    "#vlive"
+  ]
+},
+  {
+    "id": 2,
+    "url": "https://twitter.com/karpathy/status/1234567891",
+    "author_name": "Andrej Karpathy",
+    "author_handle": "@karpathy",
+    "content": "The hottest new programming language is English. The hottest new IDE is a chat window. The hottest new debugger is asking the model why it did what it did.",
+    "date": "2025-05-09",
+    "tags": ["개발", "AI"]
+  },
+  {
+    "id": 3,
+    "url": "https://twitter.com/paulg/status/1234567892",
+    "author_name": "Paul Graham",
+    "author_handle": "@paulg",
+    "content": "The best founders don't manage up. They don't even think about it. They're just focused on the work.",
+    "date": "2025-05-03",
+    "tags": ["창업"]
+  },
+  {
+    "id": 4,
+    "url": "https://twitter.com/naval/status/1234567893",
+    "author_name": "Naval",
+    "author_handle": "@naval",
+    "content": "Desire is a contract you make with yourself to be unhappy until you get what you want.",
+    "date": "2025-05-01",
+    "tags": ["인생"]
+  },
+  {
+    "id": 5,
+    "url": "https://twitter.com/paulg/status/1234567894",
+    "author_name": "Paul Graham",
+    "author_handle": "@paulg",
+    "content": "The most counterintuitive thing about startups: work on what's interesting, not what seems like a good startup idea.",
+    "date": "2025-04-22",
+    "tags": ["창업"]
+  },
+  {
+    "id": 6,
+    "url": "https://twitter.com/karpathy/status/1234567895",
+    "author_name": "Andrej Karpathy",
+    "author_handle": "@karpathy",
+    "content": "Neural nets are not magic. They're just function approximators trained with gradient descent. But the functions they learn... are magic.",
+    "date": "2025-04-15",
+    "tags": ["AI", "개발"]
+  },
+  {
+    "id": 7,
+    "url": "https://twitter.com/naval/status/1234567896",
+    "author_name": "Naval",
+    "author_handle": "@naval",
+    "content": "Read what you love until you love to read. Do what you love until you love to do.",
+    "date": "2025-03-30",
+    "tags": ["인생"]
+  },
+  {
+    "id": 8,
+    "url": "https://twitter.com/sama/status/1234567897",
+    "author_name": "Sam Altman",
+    "author_handle": "@sama",
+    "content": "compounding is magic. it works in careers, in relationships, in learning. do more things where small consistent inputs produce exponential outputs.",
+    "date": "2025-03-12",
+    "tags": ["인생", "창업"]
+  },
+  {
+    "id": 9,
+    "url": "https://twitter.com/paulg/status/1234567898",
+    "author_name": "Paul Graham",
+    "author_handle": "@paulg",
+    "content": "One of the most dangerous illusions in startups: thinking your idea is what makes you successful. Execution is what makes you successful.",
+    "date": "2025-02-20",
+    "tags": ["창업"]
+  },
+  {
+    "id": 10,
+    "url": "https://twitter.com/karpathy/status/1234567899",
+    "author_name": "Andrej Karpathy",
+    "author_handle": "@karpathy",
+    "content": "Software 2.0 is here. Instead of writing explicit instructions, we specify desired behavior via datasets and use optimization to find the program. This is a different way to program computers.",
+    "date": "2025-02-08",
+    "tags": ["AI", "개발"]
+  }
+]
