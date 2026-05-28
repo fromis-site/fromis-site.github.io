@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fromis Tweets</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script async src="https://platform.twitter.com/widgets.js"></script>
+  <style>
+	  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+	  :root {
+	  --bg: #080808; --surface: #0f0f0f; --border: #1c1c1c; --border2: #282828;
+	  --text: #d0d0d0; --muted: #f0f0f0; --dim: #f0f0f0; --white: #f0f0f0; --accent: #c8b8a2;
+	  }
+	  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; }
+
+	  /* ── HEADER ── */
+	  #header {
+	  position: sticky; top: 0; z-index: 100;
+	  background: rgba(8,8,8,0.93); backdrop-filter: blur(14px);
+	  border-bottom: 1px solid var(--border);
+	  }
+	  .header-top {
+	  display: flex; align-items: center; justify-content: space-between;
+	  padding: 20px 40px 18px; border-bottom: 1px solid var(--border);
+	  }
+	  .site-title {
+	  font-family: 'DM Serif Display', serif; font-size: 20px;
+	  letter-spacing: 0.04em; color: var(--white); font-weight: 400;
+	  }
+	  .site-title em { font-style: italic; color: var(--accent); }
+	  .header-count { font-size: 11px; color: var(--dim); letter-spacing: 0.12em; }
+
+	  /* ── YEAR TABS ── */
+	  .year-tabs { display: flex; padding: 0 40px; border-bottom: 1px solid var(--border); }
+	  .year-tab {
+	  background: transparent; border: none; border-bottom: 2px solid transparent;
+	  padding: 13px 18px 11px; font-family: 'DM Mono', monospace; font-size: 12px;
+	  letter-spacing: 0.14em; color: var(--dim); cursor: pointer; transition: all 0.15s;
+	  }
+	  .year-tab:hover { color: var(--muted); }
+	  .year-tab.active { color: var(--white); border-bottom-color: var(--accent); }
+
+	  /* ── MONTH BAR ── */
+	  .month-bar {
+	  display: flex; padding: 0 40px; overflow-x: auto; scrollbar-width: none;
+	  }
+	  .month-bar::-webkit-scrollbar { display: none; }
+	  .month-btn {
+	  background: transparent; border: none; border-bottom: 2px solid transparent;
+	  padding: 10px 15px; font-family: 'DM Mono', monospace; font-size: 10px;
+	  letter-spacing: 0.18em; color: var(--dim); cursor: default;
+	  transition: all 0.15s; white-space: nowrap; flex-shrink: 0; position: relative;
+	  }
+	  .month-btn.has-data { color: var(--muted); cursor: pointer; }
+	  .month-btn.has-data:hover { color: var(--text); }
+	  .month-btn.active { color: var(--white); border-bottom-color: var(--white); }
+	  .month-dot {
+	  position: absolute; top: 8px; right: 8px;
+	  width: 3px; height: 3px; border-radius: 50%; background: var(--border2);
+	  }
+
+	  /* ── MAIN ── */
+	  #main { padding: 36px 40px 80px; max-width: 660px; margin: 0 auto; }
+
+	  .section-header {
+	  display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 28px;
+	  }
+	  .section-title {
+	  font-family: 'DM Serif Display', serif; font-size: 26px;
+	  color: var(--white); font-weight: 400;
+	  }
+	  .section-count { font-size: 11px; color: var(--dim); letter-spacing: 0.1em; }
+
+	  /* ── TWEET SLOTS ── */
+	  .tweet-slot { margin-bottom: 16px; animation: fadeUp 0.3s ease both; }
+	  @keyframes fadeUp {
+	  from { opacity: 0; transform: translateY(8px); }
+	  to   { opacity: 1; transform: translateY(0); }
+	  }
+
+	  /* Twitter embed override — force dark bg blend */
+	  .tweet-slot .twitter-tweet { margin: 0 !important; }
+
+	  /* ── SKELETON ── */
+	  .skeleton {
+	  background: var(--surface); border: 1px solid var(--border);
+	  border-radius: 12px; padding: 18px; height: 160px;
+	  animation: shimmer 1.4s ease infinite;
+	  }
+	  @keyframes shimmer {
+	  0%,100% { opacity: 0.4; } 50% { opacity: 0.8; }
+	  }
+
+	  /* ── EMPTY / ERROR ── */
+	  .empty {
+	  text-align: center; padding: 80px 0; font-size: 12px;
+	  color: var(--dim); letter-spacing: 0.2em;
+	  }
+
+	  /* ── RESPONSIVE ── */
+	  @media (max-width: 600px) {
+	  .header-top { padding: 16px 20px; }
+	  .year-tabs, .month-bar { padding: 0 20px; }
+	  #main { padding: 24px 16px 60px; }
+	  }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div class="header-top">
+    <div class="site-title">Tweet <em>Archive</em></div>
+    <div class="header-count" id="total-count">— tweets</div>
+  </div>
+  <div class="year-tabs" id="year-tabs"></div>
+  <div class="month-bar" id="month-bar"></div>
+</div>
+
+<main id="main">
+  <div class="empty" id="loading" style="letter-spacing:.2em">LOADING...</div>
+  <div id="content" style="display:none">
+    <div class="section-header">
+      <div class="section-title" id="section-title"></div>
+      <div class="section-count" id="section-count"></div>
+    </div>
+    <div id="feed"></div>
+  </div>
+</main>
+
+<script>
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+let allTweets  = [];
+let activeYear = '';
+let activeMonth= '';
+
+// ── oEmbed 캐시 ──────────────────────────────────────────
+const embedCache = {};
+
+async function fetchEmbed(url) {
+  if (embedCache[url]) return embedCache[url];
+  try {
+    const api = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&theme=dark&dnt=true&omit_script=true`;
+    const res = await fetch(api);
+    if (!res.ok) throw new Error('failed');
+    const data = await res.json();
+    embedCache[url] = data.html;
+    return data.html;
+  } catch {
+    return null;
+  }
+}
+
+// ── 데이터 로드 ──────────────────────────────────────────
+async function loadTweets() {
+  try {
+    const res = await fetch('tweets.json');
+    allTweets = await res.json();
+    allTweets.sort((a, b) => new Date(b.date) - new Date(a.date));
+    init();
+  } catch {
+    document.getElementById('loading').textContent = 'tweets.json를 불러올 수 없습니다.';
+  }
+}
+
+function init() {
+  document.getElementById('total-count').textContent = `${allTweets.length} tweets`;
+  document.getElementById('loading').style.display  = 'none';
+  document.getElementById('content').style.display  = 'block';
+
+  const years = [...new Set(allTweets.map(t => t.date.slice(0,4)))].sort((a,b) => b-a);
+  activeYear  = years[0];
+
+  renderYearTabs(years);
+  autoSelectMonth();
+  renderMonthBar();
+  renderFeed();
+}
+
+// ── YEAR TABS ────────────────────────────────────────────
+function renderYearTabs(years) {
+  document.getElementById('year-tabs').innerHTML = years.map(y =>
+    `<button class="year-tab ${y===activeYear?'active':''}" onclick="selectYear('${y}')">${y}</button>`
+  ).join('');
+}
+function selectYear(y) {
+  activeYear = y;
+  document.querySelectorAll('.year-tab').forEach(b => b.classList.toggle('active', b.textContent===y));
+  autoSelectMonth();
+  renderMonthBar();
+  renderFeed();
+}
+
+// ── MONTH BAR ────────────────────────────────────────────
+function monthsWithData() {
+  return new Set(
+    allTweets.filter(t => t.date.startsWith(activeYear)).map(t => parseInt(t.date.slice(5,7))-1)
+  );
+}
+function autoSelectMonth() {
+  const set = monthsWithData();
+  const sorted = [...set].sort((a,b)=>b-a);
+  activeMonth = sorted.length ? MONTHS[sorted[0]] : MONTHS[new Date().getMonth()];
+}
+function renderMonthBar() {
+  const set = monthsWithData();
+  document.getElementById('month-bar').innerHTML = MONTHS.map((m,i) => {
+    const has = set.has(i), isActive = m===activeMonth;
+    return `<button class="month-btn ${has?'has-data':''} ${isActive?'active':''}"
+      ${has?`onclick="selectMonth('${m}')"`:''}>${m}${has&&!isActive?'<span class="month-dot"></span>':''}</button>`;
+  }).join('');
+}
+function selectMonth(m) {
+  activeMonth = m;
+  renderMonthBar();
+  renderFeed();
+}
+
+// ── FEED ─────────────────────────────────────────────────
+async function renderFeed() {
+  const mi = MONTHS.indexOf(activeMonth)+1;
+  const prefix = `${activeYear}-${String(mi).padStart(2,'0')}`;
+  const tweets = allTweets.filter(t => t.date.startsWith(prefix));
+
+  document.getElementById('section-title').textContent = `${activeMonth} ${activeYear}`;
+  document.getElementById('section-count').textContent = `${tweets.length} tweets`;
+
+  const feed = document.getElementById('feed');
+
+  if (tweets.length === 0) {
+    feed.innerHTML = '<div class="empty">— NO TWEETS THIS MONTH —</div>';
+    return;
+  }
+
+  // 스켈레톤 먼저 표시
+  feed.innerHTML = tweets.map((_,i) =>
+    `<div class="tweet-slot" id="slot-${i}" style="animation-delay:${i*0.05}s">
+      <div class="skeleton"></div>
+    </div>`
+  ).join('');
+
+  // 병렬로 oEmbed 패치 후 순서대로 삽입
+  const htmls = await Promise.all(tweets.map(t => fetchEmbed(t.url)));
+
+  htmls.forEach((html, i) => {
+    const slot = document.getElementById(`slot-${i}`);
+    if (!slot) return;
+    if (html) {
+      slot.innerHTML = html;
+    } else {
+      // oEmbed 실패 시 링크 폴백
+      slot.innerHTML = `
+        <div style="background:#0f0f0f;border:1px solid #1c1c1c;padding:18px 20px;border-radius:12px">
+          <a href="${tweets[i].url}" target="_blank" rel="noopener"
+             style="color:#c8b8a2;font-size:12px;letter-spacing:.08em;text-decoration:none">
+            ${tweets[i].url} →
+          </a>
+        </div>`;
+    }
+  });
+
+  // Twitter 위젯 렌더링
+  if (window.twttr && window.twttr.widgets) {
+    window.twttr.widgets.load(feed);
+  }
+}
+
+loadTweets();
+</script>
+</body>
+</html>

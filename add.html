@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tweet 추가 · Archive</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080808; --surface: #0f0f0f; --surface2: #141414;
+      --border: #1e1e1e; --border2: #2c2c2c;
+      --text: #d0d0d0; --muted: #555; --dim: #333; --white: #f0f0f0;
+      --accent: #c8b8a2; --green: #4ecb6e; --red: #ff7c7c;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh; padding: 48px 24px 80px;
+    }
+    .wrap { max-width: 640px; margin: 0 auto; }
+
+    .page-title {
+      font-family: 'DM Serif Display', serif; font-size: 22px;
+      color: var(--white); font-weight: 400; margin-bottom: 6px;
+    }
+    .page-title em { font-style: italic; color: var(--accent); }
+    .page-sub { font-size: 11px; color: var(--dim); letter-spacing: 0.14em; margin-bottom: 36px; }
+
+    /* ── 행 ── */
+    .row-label {
+      display: grid;
+      grid-template-columns: 1fr 160px 36px;
+      gap: 8px;
+      font-size: 10px; letter-spacing: 0.16em; color: var(--muted);
+      margin-bottom: 8px; padding: 0 2px;
+    }
+
+    #rows { display: flex; flex-direction: column; gap: 8px; }
+
+    .entry-row {
+      display: grid;
+      grid-template-columns: 1fr 160px 36px;
+      gap: 8px;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+
+    input[type="url"], input[type="date"] {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      color: var(--white); padding: 10px 12px;
+      font-family: 'DM Mono', monospace; font-size: 12px;
+      outline: none; transition: border-color 0.15s;
+    }
+    input[type="url"]:focus, input[type="date"]:focus { border-color: var(--border2); }
+    input[type="date"] { color-scheme: dark; }
+    input::placeholder { color: var(--dim); }
+
+    .del-btn {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--dim); font-size: 16px; cursor: pointer;
+      transition: all 0.15s; display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+    .del-btn:hover { color: var(--red); border-color: var(--red); }
+
+    /* ── 하단 버튼 ── */
+    .action-row {
+      display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;
+    }
+    .btn {
+      font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em;
+      padding: 10px 20px; cursor: pointer; border: 1px solid; transition: all 0.15s;
+    }
+    .btn-add     { background: transparent; border-color: var(--border2); color: var(--muted); }
+    .btn-add:hover { color: var(--white); border-color: var(--white); }
+    .btn-primary { background: var(--white); border-color: var(--white); color: var(--bg); margin-left: auto; }
+    .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+    .btn-ghost   { background: transparent; border-color: var(--border2); color: var(--muted); }
+    .btn-ghost:hover { color: var(--red); border-color: var(--red); }
+
+    /* ── 카운터 ── */
+    .row-count { font-size: 11px; color: var(--dim); align-self: center; }
+
+    /* ── OUTPUT ── */
+    #output-wrap { margin-top: 32px; display: none; }
+    .output-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+    }
+    .output-label { font-size: 10px; letter-spacing: 0.18em; color: var(--muted); }
+    .copy-btn {
+      font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
+      padding: 4px 14px; background: transparent; border: 1px solid var(--border2);
+      color: var(--muted); cursor: pointer; transition: all 0.15s;
+    }
+    .copy-btn:hover { color: var(--green); border-color: var(--green); }
+    .copy-btn.done  { color: var(--green); border-color: var(--green); }
+
+    pre {
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 18px; font-family: 'DM Mono', monospace; font-size: 12px;
+      line-height: 1.75; color: #aaa; overflow-x: auto; white-space: pre;
+      max-height: 400px; overflow-y: auto;
+    }
+
+    .guide {
+      margin-top: 12px; padding: 14px 16px; border: 1px solid var(--border);
+      font-size: 11px; color: var(--dim); line-height: 1.9;
+    }
+    .guide strong { color: var(--muted); }
+
+    .err { font-size: 11px; color: var(--red); margin-top: 10px; display: none; }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+    .nav-link {
+      font-size: 11px; color: var(--dim); text-decoration: none;
+      letter-spacing: 0.12em; transition: color 0.15s;
+    }
+    .nav-link:hover { color: var(--accent); }
+
+    @media (max-width: 520px) {
+      .row-label, .entry-row { grid-template-columns: 1fr 130px 32px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="page-title">Tweet <em>Archive</em></div>
+  <div class="page-sub">— 트윗 추가 도우미 · 여러 개 한꺼번에 추가 가능</div>
+
+  <div class="row-label">
+    <span>트윗 URL</span>
+    <span>날짜</span>
+    <span></span>
+  </div>
+
+  <div id="rows"></div>
+
+  <div class="action-row">
+    <button class="btn btn-add" onclick="addRow()">+ 행 추가</button>
+    <span class="row-count" id="row-count"></span>
+    <button class="btn btn-ghost" onclick="clearAll()">전체 초기화</button>
+    <button class="btn btn-primary" onclick="generate()">JSON 생성</button>
+  </div>
+  <div class="err" id="err">URL이 비어있는 행이 있습니다. 확인해주세요.</div>
+
+  <!-- OUTPUT -->
+  <div id="output-wrap">
+    <div class="output-header">
+      <span class="output-label">생성된 JSON — tweets.json 배열 안 맨 위에 붙여넣기</span>
+      <button class="copy-btn" id="copy-btn" onclick="copyOut()">복사</button>
+    </div>
+    <pre id="out-pre"></pre>
+    <div class="guide">
+      <strong>붙여넣는 위치</strong><br/>
+      tweets.json을 열고 <code>[</code> 바로 안, 맨 위에 붙여넣은 뒤<br/>
+      마지막 줄 끝에 <code>,</code> 를 추가하세요.<br/><br/>
+      <strong>예시</strong><br/>
+      <code>[<br/>
+&nbsp;&nbsp;← 여기에 붙여넣기 (마지막 항목 뒤 콤마 추가)<br/>
+&nbsp;&nbsp;{ "date": "2025-05-14", "url": "https://..." }<br/>
+]</code>
+    </div>
+  </div>
+
+  <hr />
+  <a href="index.html" class="nav-link">← 아카이브로 돌아가기</a>
+</div>
+
+<script>
+  const today = () => new Date().toISOString().slice(0, 10);
+  let rowId = 0;
+
+  function addRow(url = '', date = '') {
+    const id = rowId++;
+    const div = document.createElement('div');
+    div.className = 'entry-row';
+    div.id = `row-${id}`;
+    div.innerHTML = `
+      <input type="url" id="url-${id}" placeholder="https://twitter.com/..." value="${url}"
+             onkeydown="if(event.key==='Enter')addRow()" autocomplete="off" />
+      <input type="date" id="date-${id}" value="${date || today()}" />
+      <button class="del-btn" onclick="removeRow(${id})">×</button>
+    `;
+    document.getElementById('rows').appendChild(div);
+    document.getElementById(`url-${id}`).focus();
+    updateCount();
+  }
+
+  function removeRow(id) {
+    const el = document.getElementById(`row-${id}`);
+    if (el) el.remove();
+    // 마지막 행이면 하나 다시 추가
+    if (document.querySelectorAll('.entry-row').length === 0) addRow();
+    updateCount();
+  }
+
+  function updateCount() {
+    const n = document.querySelectorAll('.entry-row').length;
+    document.getElementById('row-count').textContent = n > 1 ? `${n}개` : '';
+  }
+
+  function clearAll() {
+    document.getElementById('rows').innerHTML = '';
+    document.getElementById('output-wrap').style.display = 'none';
+    document.getElementById('err').style.display = 'none';
+    rowId = 0;
+    addRow();
+  }
+
+  function generate() {
+    const rows = document.querySelectorAll('.entry-row');
+    const err  = document.getElementById('err');
+    const entries = [];
+    let hasErr = false;
+
+    rows.forEach(row => {
+      const id   = row.id.replace('row-', '');
+      const url  = document.getElementById(`url-${id}`).value.trim();
+      const date = document.getElementById(`date-${id}`).value;
+      if (!url) { hasErr = true; return; }
+      entries.push({ date, url });
+    });
+
+    if (hasErr) { err.style.display = 'block'; return; }
+    err.style.display = 'none';
+
+    if (entries.length === 0) return;
+
+    // 날짜 내림차순 정렬
+    entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const lines = entries.map((e, i) =>
+      JSON.stringify(e) + (i < entries.length - 1 ? ',' : '')
+    ).join('\n');
+
+    document.getElementById('out-pre').textContent = lines;
+    document.getElementById('output-wrap').style.display = 'block';
+    document.getElementById('copy-btn').textContent = '복사';
+    document.getElementById('copy-btn').classList.remove('done');
+    document.getElementById('output-wrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function copyOut() {
+    navigator.clipboard.writeText(document.getElementById('out-pre').textContent).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '✓ 복사됨';
+      btn.classList.add('done');
+    });
+  }
+
+  // 초기 행 3개
+  addRow(); addRow(); addRow();
+</script>
+</body>
+</html>
