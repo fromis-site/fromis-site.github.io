@@ -157,7 +157,7 @@ async function loadTweets() {
   try {
     const res = await fetch('tweets.json');
     allTweets = await res.json();
-    allTweets.sort((a, b) => new Date(b.date) - new Date(a.date));
+    allTweets.sort((a, b) => new Date(a.date) - new Date(b.date));
     init();
   } catch {
     document.getElementById('loading').textContent = 'tweets.json를 불러올 수 없습니다.';
