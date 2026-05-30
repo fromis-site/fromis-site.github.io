@@ -124,7 +124,7 @@
 	  .disabled { opacity: 0.3; pointer-events: none; }
  
 	  .tweet-date-chip {
-	  font-size: 10px; letter-spacing: 0.1em; color: #444; margin-bottom: 6px; padding-left: 2px;
+	  font-size: 10px; letter-spacing: 0.1em; color: #f0f0f0; margin-bottom: 6px; padding-left: 2px;
 	  }
  
 	  /* ── RESPONSIVE ── */
@@ -218,7 +218,7 @@ function init() {
     document.getElementById('date-to').max   = dates[dates.length-1];
   }
  
-  const years = [...new Set(allTweets.map(t => t.date.slice(0,4)))].sort((a,b) => b-a);
+  const years = [...new Set(allTweets.map(t => t.date.slice(0,4)))].sort((a,b) => a-b);
   activeYear  = years[0];
  
   renderYearTabs(years);
