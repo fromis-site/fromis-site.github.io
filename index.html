@@ -276,7 +276,7 @@ function monthsWithData() {
     allTweets
       .filter(t => t.date.startsWith(activeYear))
       .map(t => parseInt(t.date.slice(5,7))-1)
-      .filter(m => activeYear !== '2017' || [10, 11].includes(m)) // 17년 1112 only다 바부자슥아!!!!!!!!!!
+      .filter(m => activeYear !== '2017' || [NOV, DEC].includes(m)) // 17년 1112 only다 바부자슥아!!!!!!!!!! 아니다 바보가 난가 ㄱㄷ
   );
 }
 function autoSelectMonth() {
