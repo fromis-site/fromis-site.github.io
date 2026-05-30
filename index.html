@@ -31,7 +31,7 @@
 	  .site-title em { font-style: italic; color: var(--accent); }
 	  .header-count { font-size: 11px; color: var(--dim); letter-spacing: 0.12em; }
  
-	  /* ── YEAR TABS ── */
+	  /* ── 년 ── */
 	  .year-tabs { display: flex; padding: 0 40px; border-bottom: 1px solid var(--border); }
 	  .year-tab {
 	  background: transparent; border: none; border-bottom: 2px solid transparent;
@@ -41,7 +41,7 @@
 	  .year-tab:hover { color: var(--muted); }
 	  .year-tab.active { color: var(--white); border-bottom-color: var(--accent); }
  
-	  /* ── MONTH BAR ── */
+	  /* ── 월 ── */
 	  .month-bar {
 	  display: flex; padding: 0 40px; overflow-x: auto; scrollbar-width: none;
 	  }
@@ -253,7 +253,7 @@ function exitDateMode() {
 }
 function clearDate() { exitDateMode(); renderFeed(); }
  
-// ── YEAR TABS ────────────────────────────────────────────
+// ── 년 ────────────────────────────────────────────
 function renderYearTabs(years) {
   document.getElementById('year-tabs').innerHTML = years.map(y =>
     `<button class="year-tab ${y===activeYear?'active':''}" onclick="selectYear('${y}')">${y}</button>`
@@ -267,17 +267,11 @@ function selectYear(y) {
   renderFeed();
 }
  
-// ── MONTH BAR ────────────────────────────────────────────
+// ── 월 ────────────────────────────────────────────
 function monthsWithData() {
   return new Set(
     allTweets.filter(t => t.date.startsWith(activeYear)).map(t => parseInt(t.date.slice(5,7))-1)
-  );
-  return new Set(
-    allTweets
-      .filter(t => t.date.startsWith(activeYear))
-      .map(t => parseInt(t.date.slice(5,7))-1)
-      .filter(m => activeYear !== '2017' || [NOV, DEC].includes(m)) // 17년 1112 only다 바부자슥아!!!!!!!!!! 아니다 바보가 난가 ㄱㄷ
-  );
+  ); //그냥 안할래 응애
 }
 function autoSelectMonth() {
   const set = monthsWithData();
@@ -360,8 +354,9 @@ async function renderFeed() {
     window.twttr.widgets.load(feed);
   }
 }
- 
+/* 클로드 사랑한다 자슥아 니덕분에 만듬 @cutebabocat */
 loadTweets();
 </script>
 </body>
 </html>
+
