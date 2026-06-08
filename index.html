@@ -32,7 +32,8 @@
 	  .header-count { font-size: 11px; color: var(--dim); letter-spacing: 0.12em; }
  
 	  /* ── 년 ── */
-	  .year-tabs { display: flex; padding: 0 40px; border-bottom: 1px solid var(--border); }
+	  .year-tabs { display: flex; padding: 0 40px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+	  .year-tabs::-webkit-scrollbar { display: none; }
 	  .year-tab {
 	  background: transparent; border: none; border-bottom: 2px solid transparent;
 	  padding: 13px 18px 11px; font-family: 'DM Mono', monospace; font-size: 12px;
