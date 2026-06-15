@@ -99,35 +99,19 @@
 	  color: var(--dim); letter-spacing: 0.2em;
 	  }
  
-	  /* ── DATE RANGE ── */
-	  .date-range {
+	  /* ── SEARCH ── */
+	  .search-bar {
 	  display: flex; align-items: center; gap: 10px;
-	  padding: 11px 40px; border-bottom: 1px solid var(--border);
+	  padding: 10px 40px; border-bottom: 1px solid var(--border);
 	  }
-	  .date-label { font-size: 10px; letter-spacing: 0.16em; color: var(--muted); white-space: nowrap; }
-	  .date-sep   { font-size: 11px; color: var(--dim); }
-	  input[type="date"].dr {
-	  background: transparent; border: none; border-bottom: 1px solid #333;
-	  color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px;
-	  outline: none; color-scheme: dark; padding: 3px 4px; cursor: pointer; transition: color 0.15s;
+	  .search-icon { color: #444; font-size: 14px; flex-shrink: 0; }
+	  #kw-input {
+	  flex: 1; background: transparent; border: none; outline: none;
+	  color: var(--white); font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.06em;
 	  }
-	  input[type="date"].dr:focus { color: var(--white); border-bottom-color: var(--accent); }
-	  .clear-date {
-	  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
-	  color: #444; background: transparent; border: 1px solid #F3B33E;
-	  padding: 3px 10px; cursor: pointer; transition: all 0.15s; margin-left: 2px;
-	  white-space: nowrap;	  
-	  }
-	  .clear-date:hover { color: var(--white); border-color: #F3B33E; }
-	  .date-badge {
-	  font-size: 10px; letter-spacing: 0.1em; padding: 2px 8px;
-	  background: #1a0d00; border: 1px solid #e8382f44; color: var(--accent); display: none;
-	  }
-	  .disabled { opacity: 0.3; pointer-events: none; }
- 
-	  .tweet-date-chip {
-	  font-size: 10px; letter-spacing: 0.1em; color: #f0f0f0; margin-bottom: 6px; padding-left: 2px;
-	  }
+	  #kw-input::placeholder { color: #333; }
+	  .search-count { font-size: 10px; color: #444; letter-spacing: 0.1em; white-space: nowrap; }
+	  .tweet-slot.hidden { display: none; }
  
 	  /* ── RESPONSIVE ── */
 	  @media (max-width: 600px) {
@@ -144,12 +128,10 @@
     <div class="site-title">Fromis Tweets</div>
     <div class="header-count" id="total-count">— tweets</div>
   </div>
-  <div class="date-range">
-    <span class="date-label">DATE</span>
-    <input type="date" class="dr" id="date-from" />
-    <span class="date-sep">—</span>
-    <input type="date" class="dr" id="date-to" />
-    <button class="clear-date" onclick="clearDate()">초기화</button>
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <input id="kw-input" type="text" placeholder="현재 월 트윗 검색..." autocomplete="off" />
+    <span class="search-count" id="search-count"></span>
   </div>
   <div class="year-tabs" id="year-tabs"></div>
   <div class="month-bar" id="month-bar"></div>
@@ -172,9 +154,7 @@ const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV
 let allTweets  = [];
 let activeYear = '';
 let activeMonth= '';
-let dateFrom   = '';
-let dateTo     = '';
-let dateMode   = false;
+const textCache = {}; // slot index -> 트윗 텍스트
  
 // ── oEmbed 캐시 ──────────────────────────────────────────
 const embedCache = {};
@@ -228,33 +208,25 @@ function init() {
   renderFeed();
 }
  
-// ── DATE RANGE ───────────────────────────────────────────
-document.getElementById('date-from').addEventListener('change', function() {
-  dateFrom = this.value;
-  if (dateFrom || dateTo) enterDateMode(); else exitDateMode();
-  renderFeed();
+// ── SEARCH ────────────────────────────────────────────
+document.getElementById('kw-input').addEventListener('input', function() {
+  filterSlots(this.value.trim());
 });
-document.getElementById('date-to').addEventListener('change', function() {
-  dateTo = this.value;
-  if (dateFrom || dateTo) enterDateMode(); else exitDateMode();
-  renderFeed();
-});
-function enterDateMode() {
-  dateMode = true;
-  document.getElementById('date-badge').style.display = 'inline-block';
-  document.querySelectorAll('.year-tab, .month-btn').forEach(b => b.classList.add('disabled'));
-}
-function exitDateMode() {
-  dateMode = false;
-  dateFrom = ''; dateTo = '';
-  document.getElementById('date-from').value = '';
-  document.getElementById('date-to').value   = '';
-  document.getElementById('date-badge').style.display = 'none';
-  document.querySelectorAll('.year-tab, .month-btn').forEach(b => b.classList.remove('disabled'));
-}
-function clearDate() { exitDateMode(); renderFeed(); }
  
-// ── 년 ────────────────────────────────────────────
+function filterSlots(q) {
+  const slots = document.querySelectorAll('.tweet-slot');
+  let visible = 0;
+  slots.forEach((slot, i) => {
+    const text = (textCache[i] || '').toLowerCase();
+    const match = !q || text.includes(q.toLowerCase());
+    slot.classList.toggle('hidden', !match);
+    if (match) visible++;
+  });
+  const total = slots.length;
+  document.getElementById('search-count').textContent = q ? `${visible}/${total}` : '';
+}
+ 
+// ── 년 ────// ── 년 ────────────────────────────────────────────
 function renderYearTabs(years) {
   document.getElementById('year-tabs').innerHTML = years.map(y =>
     `<button class="year-tab ${y===activeYear?'active':''}" onclick="selectYear('${y}')">${y}</button>`
@@ -297,21 +269,15 @@ function selectMonth(m) {
 async function renderFeed() {
   let tweets, titleText, countText;
  
-  if (dateMode && (dateFrom || dateTo)) {
-    tweets = allTweets.filter(t => {
-      if (dateFrom && t.date < dateFrom) return false;
-      if (dateTo   && t.date > dateTo)   return false;
-      return true;
-    });
-    titleText = `${dateFrom || '처음'} ~ ${dateTo || '최근'}`;
-    countText = `${tweets.length} tweets`;
-  } else {
-    const mi = MONTHS.indexOf(activeMonth)+1;
-    const prefix = `${activeYear}-${String(mi).padStart(2,'0')}`;
-    tweets = allTweets.filter(t => t.date.startsWith(prefix));
-    titleText = `${activeMonth} ${activeYear}`;
-    countText = `${tweets.length} tweets`;
-  }
+  // 검색창 초기화
+  document.getElementById('kw-input').value = '';
+  document.getElementById('search-count').textContent = '';
+ 
+  const mi = MONTHS.indexOf(activeMonth)+1;
+  const prefix = `${activeYear}-${String(mi).padStart(2,'0')}`;
+  tweets = allTweets.filter(t => t.date.startsWith(prefix));
+  titleText = `${activeMonth} ${activeYear}`;
+  countText = `${tweets.length} tweets`;
  
   document.getElementById('section-title').textContent = titleText;
   document.getElementById('section-count').textContent = countText;
@@ -324,9 +290,11 @@ async function renderFeed() {
   }
  
   // 스켈레톤 먼저 표시
+  // textCache 초기화
+  Object.keys(textCache).forEach(k => delete textCache[k]);
+ 
   feed.innerHTML = tweets.map((_,i) =>
     `<div class="tweet-slot" id="slot-${i}" style="animation-delay:${i*0.05}s">
-      ${dateMode ? `<div class="tweet-date-chip">${tweets[i].date}</div>` : ''}
       <div class="skeleton"></div>
     </div>`
   ).join('');
@@ -338,9 +306,15 @@ async function renderFeed() {
     const slot = document.getElementById(`slot-${i}`);
     if (!slot) return;
     if (html) {
-      slot.innerHTML = (dateMode ? `<div class="tweet-date-chip">${tweets[i].date}</div>` : '') + html;
+      // blockquote 텍스트 추출해서 캐시
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const bq = tmp.querySelector('blockquote');
+      textCache[i] = ((bq ? bq.textContent : tmp.textContent) || '').toLowerCase();
+      slot.innerHTML = html;
     } else {
-      slot.innerHTML = (dateMode ? `<div class="tweet-date-chip">${tweets[i].date}</div>` : '') + `
+      textCache[i] = '';
+      slot.innerHTML = `
         <div style="background:#0f0f0f;border:1px solid #1c1c1c;padding:18px 20px;border-radius:12px">
           <a href="${tweets[i].url}" target="_blank" rel="noopener"
              style="color:#c8b8a2;font-size:12px;letter-spacing:.08em;text-decoration:none">
