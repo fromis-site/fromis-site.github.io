@@ -112,7 +112,7 @@
 	  #kw-input::placeholder { color: #333; }
 	  .search-count { font-size: 10px; color: #444; letter-spacing: 0.1em; white-space: nowrap; }
 	  .tweet-slot.hidden { display: none; }
- 
+
 	  /* ── RESPONSIVE ── */
 	  @media (max-width: 600px) {
 	  .header-top { padding: 16px 20px; }
@@ -190,15 +190,6 @@ function init() {
   document.getElementById('loading').style.display  = 'none';
   document.getElementById('content').style.display  = 'block';
  
-  // 날짜 범위 min/max 설정
-  const dates = allTweets.map(t => t.date).sort();
-  if (dates.length) {
-    document.getElementById('date-from').min = dates[0];
-    document.getElementById('date-from').max = dates[dates.length-1];
-    document.getElementById('date-to').min   = dates[0];
-    document.getElementById('date-to').max   = dates[dates.length-1];
-  }
- 
   const years = [...new Set(allTweets.map(t => t.date.slice(0,4)))].sort((a,b) => a-b);
   activeYear  = years[0];
  
@@ -212,7 +203,7 @@ function init() {
 document.getElementById('kw-input').addEventListener('input', function() {
   filterSlots(this.value.trim());
 });
- 
+
 function filterSlots(q) {
   const slots = document.querySelectorAll('.tweet-slot');
   let visible = 0;
@@ -225,8 +216,8 @@ function filterSlots(q) {
   const total = slots.length;
   document.getElementById('search-count').textContent = q ? `${visible}/${total}` : '';
 }
- 
-// ── 년 ────// ── 년 ────────────────────────────────────────────
+
+// ── 년 ────────────────────────────────────────────
 function renderYearTabs(years) {
   document.getElementById('year-tabs').innerHTML = years.map(y =>
     `<button class="year-tab ${y===activeYear?'active':''}" onclick="selectYear('${y}')">${y}</button>`
@@ -268,11 +259,11 @@ function selectMonth(m) {
 // ── FEED ─────────────────────────────────────────────────
 async function renderFeed() {
   let tweets, titleText, countText;
- 
+
   // 검색창 초기화
   document.getElementById('kw-input').value = '';
   document.getElementById('search-count').textContent = '';
- 
+
   const mi = MONTHS.indexOf(activeMonth)+1;
   const prefix = `${activeYear}-${String(mi).padStart(2,'0')}`;
   tweets = allTweets.filter(t => t.date.startsWith(prefix));
@@ -292,7 +283,7 @@ async function renderFeed() {
   // 스켈레톤 먼저 표시
   // textCache 초기화
   Object.keys(textCache).forEach(k => delete textCache[k]);
- 
+
   feed.innerHTML = tweets.map((_,i) =>
     `<div class="tweet-slot" id="slot-${i}" style="animation-delay:${i*0.05}s">
       <div class="skeleton"></div>
