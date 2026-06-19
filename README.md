@@ -1,4 +1,4 @@
-# Fromis_9 Tweet Finder - fromis-site.github.io
+# Fromis_9 Tweet Archive - fromis-site.github.io
 
 ## 소개
 - 프로미스나인 공식 X 트윗 중 멤버들 사진을 포함하는 트윗들을 년-월 카테고리에 따라 분류했습니다.
