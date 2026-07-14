@@ -258,68 +258,80 @@ function selectMonth(m) {
 }
  
 // ── FEED ─────────────────────────────────────────────────
-async function renderFeed() {
-  let tweets, titleText, countText;
+let currentObserver = null;
+let currentTweets   = [];
 
+async function loadSlot(slot, tweet, i) {
+  if (slot.dataset.loaded === '1') return;
+  slot.dataset.loaded = '1';
+
+  const html = await fetchEmbed(tweet.url);
+  if (!slot.isConnected) return; // 월 이동했으면 중단
+
+  if (html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const bq = tmp.querySelector('blockquote');
+    textCache[i] = ((bq ? bq.textContent : tmp.textContent) || '').toLowerCase();
+    slot.innerHTML = html;
+    if (window.twttr && window.twttr.widgets) twttr.widgets.load(slot);
+  } else {
+    textCache[i] = '';
+    slot.innerHTML = `
+      <div style="background:#0f0f0f;border:1px solid #1c1c1c;padding:18px 20px;border-radius:12px">
+        <a href="${tweet.url}" target="_blank" rel="noopener"
+           style="color:#c8b8a2;font-size:12px;letter-spacing:.08em;text-decoration:none">
+          ${tweet.url} →
+        </a>
+      </div>`;
+  }
+}
+
+async function renderFeed() {
   // 검색창 초기화
   document.getElementById('kw-input').value = '';
   document.getElementById('search-count').textContent = '';
 
+  // 이전 observer 해제
+  if (currentObserver) { currentObserver.disconnect(); currentObserver = null; }
+  Object.keys(textCache).forEach(k => delete textCache[k]);
+
   const mi = MONTHS.indexOf(activeMonth)+1;
   const prefix = `${activeYear}-${String(mi).padStart(2,'0')}`;
-  tweets = allTweets.filter(t => t.date.startsWith(prefix));
-  titleText = `${activeMonth} ${activeYear}`;
-  countText = `${tweets.length} tweets`;
- 
-  document.getElementById('section-title').textContent = titleText;
-  document.getElementById('section-count').textContent = countText;
- 
+  currentTweets = allTweets.filter(t => t.date.startsWith(prefix));
+
+  document.getElementById('section-title').textContent = `${activeMonth} ${activeYear}`;
+  document.getElementById('section-count').textContent = `${currentTweets.length} tweets`;
+
   const feed = document.getElementById('feed');
- 
-  if (tweets.length === 0) {
+
+  if (currentTweets.length === 0) {
     feed.innerHTML = '<div class="empty">— NO TWEETS THIS MONTH —</div>';
     return;
   }
- 
-  // 스켈레톤 먼저 표시
-  // textCache 초기화
-  Object.keys(textCache).forEach(k => delete textCache[k]);
 
-  feed.innerHTML = tweets.map((_,i) =>
-    `<div class="tweet-slot" id="slot-${i}" style="animation-delay:${i*0.05}s">
+  // 스켈레톤만 먼저 표시
+  feed.innerHTML = currentTweets.map((_,i) =>
+    `<div class="tweet-slot" id="slot-${i}" style="animation-delay:${i*0.03}s">
       <div class="skeleton"></div>
     </div>`
   ).join('');
- 
-  // 병렬로 oEmbed 패치 후 순서대로 삽입
-  const htmls = await Promise.all(tweets.map(t => fetchEmbed(t.url)));
- 
-  htmls.forEach((html, i) => {
+
+  // 화면에 들어올 때만 로드
+  currentObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const slot = entry.target;
+      const i    = parseInt(slot.id.replace('slot-', ''));
+      currentObserver.unobserve(slot);
+      loadSlot(slot, currentTweets[i], i);
+    });
+  }, { rootMargin: '300px' }); // 300px 앞에서 미리 로드 시작
+
+  currentTweets.forEach((_, i) => {
     const slot = document.getElementById(`slot-${i}`);
-    if (!slot) return;
-    if (html) {
-      // blockquote 텍스트 추출해서 캐시
-      const tmp = document.createElement('div');
-      tmp.innerHTML = html;
-      const bq = tmp.querySelector('blockquote');
-      textCache[i] = ((bq ? bq.textContent : tmp.textContent) || '').toLowerCase();
-      slot.innerHTML = html;
-    } else {
-      textCache[i] = '';
-      slot.innerHTML = `
-        <div style="background:#0f0f0f;border:1px solid #1c1c1c;padding:18px 20px;border-radius:12px">
-          <a href="${tweets[i].url}" target="_blank" rel="noopener"
-             style="color:#c8b8a2;font-size:12px;letter-spacing:.08em;text-decoration:none">
-            ${tweets[i].url} →
-          </a>
-        </div>`;
-    }
+    if (slot) currentObserver.observe(slot);
   });
- 
-  // Twitter 위젯 렌더링
-  if (window.twttr && window.twttr.widgets) {
-    window.twttr.widgets.load(feed);
-  }
 }
 /* 클로드 사랑한다 자슥아 니덕분에 만듬 @cutebabocat */
 loadTweets();
