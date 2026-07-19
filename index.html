@@ -225,6 +225,7 @@ function renderYearTabs(years) {
   ).join('');
 }
 function selectYear(y) {
+  window.scrollTo(0, 0); // ← 추가
   activeYear = y;
   document.querySelectorAll('.year-tab').forEach(b => b.classList.toggle('active', b.textContent===y));
   autoSelectMonth();
@@ -252,6 +253,7 @@ function renderMonthBar() {
   }).join('');
 }
 function selectMonth(m) {
+  window.scrollTo(0, 0); // ← 추가
   activeMonth = m;
   renderMonthBar();
   renderFeed();
